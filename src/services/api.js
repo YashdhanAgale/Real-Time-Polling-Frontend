@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:7777",
+  baseURL: "https://real-time-polling-backend-pvy8.onrender.com",
   withCredentials: true,
 });
 
