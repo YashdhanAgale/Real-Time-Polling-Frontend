@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { io } from "socket.io-client";
+import socket from "../socket";
 
 export default function VotePage() {
   const { id } = useParams();
@@ -41,12 +41,15 @@ export default function VotePage() {
   };
 
   useEffect(() => {
-    const s = io("http://localhost:7777", { withCredentials: true });
-    s.emit("join_poll", Number(id));
-    s.on("poll_update", (updatedPoll) => setPoll(updatedPoll));
+    socket.emit("join_poll", Number(id));
+
+    socket.on("poll_update", (updatedPoll) => {
+      setPoll(updatedPoll);
+    });
+
     return () => {
-      s.emit("leave_poll", Number(id));
-      s.disconnect();
+      socket.emit("leave_poll", Number(id));
+      socket.off("poll_update");
     };
   }, [id]);
 
@@ -125,13 +128,13 @@ export default function VotePage() {
 
         <button
           onClick={handleVote}
-          disabled={!selectedOption || alreadyVoted || submitting}
+          disabled={!selectedOption || submitting || alreadyVoted}
           className="mt-6 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
         >
           {alreadyVoted
             ? "You already voted"
             : submitting
-            ? "Submitting Vote..."
+            ? "Submitting..."
             : "Submit Vote"}
         </button>
 
